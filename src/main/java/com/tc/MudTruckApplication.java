@@ -10,7 +10,7 @@ public class MudTruckApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MudTruckApplication.class, args);
-        System.out.println("MudTruckApplication 启动成功!!!!!!!!!!");
+        System.out.println("MudTruckApplication 启动成功!!!!!!!!");
     }
 
 }
