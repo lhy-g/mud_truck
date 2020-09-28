@@ -1,0 +1,10 @@
+ 
+
+spring:
+  profiles:
+    active: dev
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/**Mapper.xml
+  type-aliases-package: com.tongchuang.general.modular.**.entity
+

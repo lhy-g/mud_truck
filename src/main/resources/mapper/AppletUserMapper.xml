@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tc.mud.applet.mapper.AppletUserMapper">
+
+	<insert id="saveCompanyInfo" parameterType="com.tc.mud.applet.dto.CompanyInfoDTO">
+		INSERT INTO mt_company_info (company_id,company_name,legal_person,uscc,licenseImg,`status`,type) VALUES
+		(#{companyId},#{companyName},#{legalPerson},#{uscc},#{licenseImg},#{status},#{type})
+	</insert>
+	 
+	 <insert id="addMemberApply">
+	 INSERT INTO mt_company_member
+	 (company_id,member_id,`type`,`status`) VALUES
+	 (#{companyId},#{userId},#{type},'0')
+	 </insert>
+	 
+	 <select id="searchCompany" resultType="java.util.Map">
+		SELECT i.company_id companyId,i.company_name companyName,if(c.status=0,c.status,'n') status,i.type
+		FROM mt_company_info i
+		LEFT JOIN mt_company_member c ON c.company_id=i.company_id AND c.member_id=#{userId}
+		WHERE i.`status`='1'	
+	 </select>
+	 <select id="getCompanyInfoByCompanyId" resultType="com.tc.mud.applet.dto.CompanyInfoDTO">
+		SELECT i.company_id,i.company_name
+		FROM mt_company_info i
+		WHERE i.company_id=#{companyId} 	
+	 </select>
+	 
+	 <select id="queryCompanyMember" resultType="java.util.Map">
+	 	SELECT m.member_id memberId,m.`type`,i.nickname,i.head_url headUrl,m.status
+		FROM mt_company_member m
+		LEFT JOIN mt_user_info i ON m.member_id=i.user_id
+		WHERE  m.boss_id = #{bossId}
+		AND m.status=#{status} ORDER BY m.created_date 
+		<!--  	<choose>
+			<when test="status== 1">
+				AND m.status=#{status} ORDER BY m.created_date 
+			</when>
+			<otherwise>
+				AND m.`status`&lt;&gt;'1'  ORDER BY m.created_date 
+			</otherwise>
+			</choose>>-->
+	 </select>
+	 
+	 <update id="updateMemberStatusByUserId">
+	 	UPDATE mt_company_member SET `status`=#{status}
+		WHERE boss_id=#{bossId} AND member_id=#{memberId}
+	 </update>
+	 
+	 <select id="getUserPrivateKey" resultType="java.lang.String">
+	 	SELECT p.private_key
+		FROM mt_user_key_pair p
+		WHERE p.user_id=#{userId}
+	 </select>
+	 <select id="getUserPublicKey" resultType="java.lang.String">
+	 	SELECT p.public_key
+		FROM mt_user_key_pair p
+		WHERE p.user_id=#{userId}
+	 </select>
+	 <insert id="addUserKeyPari">
+		INSERT INTO mt_user_key_pair
+		(user_id,public_key,private_key) VALUES
+		(#{userId},#{publicKey},#{privateKey}) ON DUPLICATE KEY
+		UPDATE public_key=#{publicKey},private_key=#{privateKey}	 
+	 </insert>
+	 <select id="getUserInfoByUnionId" resultType="com.tc.mud.applet.dto.UserInfo">
+		SELECT i.user_id userId,i.nickname,i.phone,i.head_url headUrl,m.`type`
+		FROM mt_user_info i
+		LEFT JOIN mt_company_member m ON m.member_id=i.user_id
+		WHERE i.union_id=#{unionId}
+	 </select>
+	 <insert id="saveUserInfo" parameterType="com.tc.mud.applet.dto.UserInfo">
+		 INSERT INTO mt_user_info (union_id,user_id,nickname,phone,head_url,`status`) VALUES
+		(#{unionId},#{userId},#{nickname},#{phone},#{headUrl},'1') ON DUPLICATE KEY
+		UPDATE nickname=#{nickname},head_url=#{headUrl},phone=#{phone}
+	 </insert>
+	 <select id="getCompanyIdByUserId">
+	 	
+	 
+	 </select>
+	 <insert id="saveMudYardHeadInfo" parameterType="com.tc.mud.applet.dto.MudYardHeadDTO">
+		 INSERT INTO mt_mud_yard_head_info 
+		 (yard_id,company_id,yard_name,address,permit1,permit2,permit3,permit4,permit5,`status`) values
+		 (#{yardId},#{companyId},#{yardName},#{address},#{permit1},#{permit2},#{permit3},#{permit4},#{permit5},#{status})
+		 ON DUPLICATE KEY UPDATE address=#{address},yard_name=#{yardName},permit1=#{permit1},
+		 permit2=#{permit2},
+		 permit3=#{permit3},permit4=#{permit4},permit5=#{permit5},status='1'
+	 </insert>
+	 
+	 <insert id="saveMudYardTailInfo" parameterType="com.tc.mud.applet.dto.MudYardTailDTO">
+	 	 INSERT INTO mt_mud_yard_tail_info 
+		 (yard_id,company_id,yard_name,address,permit1,permit2,permit3,permit4,permit5,`status`) values
+		 (#{yardId},#{companyId},#{yardName},#{address},#{permit1},#{permit2},#{permit3},#{permit4},#{permit5},#{status})
+		 ON DUPLICATE KEY UPDATE 
+		 address=#{address},yard_name=#{yardName},permit1=#{permit1},
+		 permit2=#{permit2},permit3=#{permit3},permit4=#{permit4},permit5=#{permit5},status='1'
+	 </insert>
+	 
+	 <select id="queryMudYardHead" resultType="java.util.Map">
+	 	SELECT i.yard_id yardId,i.yard_name yardName
+		FROM mt_mud_yard_head_info i
+		WHERE i.`status`='1' AND i.company_id=#{companyId}
+	 </select>
+	 
+	 <select id="queryMudYardTail" resultType="java.util.Map">
+	 	SELECT i.yard_id yardId,i.yard_name yardName
+		FROM mt_mud_yard_tail_info i
+		WHERE i.`status`='1' AND i.company_id=#{companyId}
+	 </select>
+	 
+	 <select id="getMudYardHeadInfo" resultType="com.tc.mud.applet.dto.MudYardHeadDTO">
+	 	SELECT i.yard_id yardId,i.yard_name yardName,i.address,i.permit1,i.permit2,
+	 			i.permit3,i.permit4,i.permit5
+		FROM mt_mud_yard_head_info i
+		WHERE i.yard_id=#{yardId}
+	 </select>
+	 
+	 <select id="getMudYardTailInfo" resultType="com.tc.mud.applet.dto.MudYardTailDTO">
+	 	SELECT i.yard_id yardId,i.yard_name yardName,i.address,i.permit1,i.permit2,
+	 			i.permit3,i.permit4,i.permit5,i.permit6
+		FROM mt_mud_yard_tail_info i
+		WHERE i.yard_id=#{yardId}
+	 </select>
+	 
+	 <select id="getBossIdByMemberId" resultType="java.lang.String">
+	 	SELECT m.boss_id
+		FROM mt_company_member m
+		WHERE m.member_id = #{memberId}
+	 </select>
+	 
+	 <select id="queryCountCompanyByUserId"  resultType="java.lang.Integer">
+	 	SELECT COUNT(1)
+		FROM mt_company_info i
+		WHERE i.boss_id=#{userId}
+	 </select>
+	 
+	 <select id="queryUserTypeByUserId" resultType="java.util.Map">
+	 	SELECT d.name,d.value
+		FROM mt_company_member m
+		LEFT JOIN  mt_base_data d ON m.`type`=d.name
+		WHERE m.member_id=#{userId}
+	 </select>
+	 
+	 <select id="queryBaseDataUserType" resultType="java.util.Map">
+	 	SELECT d.name,d.value
+		FROM mt_base_data d 
+		WHERE d.`type`=#{type}
+	 </select>
+	 
+	 <select id="queryAllMudYardHead" resultType="java.util.Map">
+	 	SELECT i.yard_id,i.yard_name
+		FROM mt_mud_yard_head_info i
+		WHERE i.`status`='1' 
+		<if test="name!=null">
+			AND i.yard_name LIKE  CONCAT(CONCAT('%', #{name}), '%')
+		</if>
+	 </select>
+	 
+	  <select id="queryAllMudYardTail" resultType="java.util.Map">
+	 	SELECT i.yard_id,i.yard_name
+		FROM mt_mud_yard_tail_info i
+		WHERE i.`status`='1' 
+		<if test="name!=null">
+			AND i.yard_name LIKE  CONCAT(CONCAT('%', #{name}), '%')
+		</if>
+	 </select>
+	 
+	 <insert id="addCompanyBoss">
+		INSERT INTO mt_company_member   
+		(boss_id,member_id,`type`,`status`)VALUES
+		(#{userId},#{userId},#{type},'1')	 
+	 </insert>
+	 
+</mapper>

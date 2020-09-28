@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tc.mud.applet.mapper.MudTicketsMapper">
+
+	<insert id="saveMudHeadInfo" parameterType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		 INSERT into mt_mud_ticket_info 
+		 (ticket_id,ticket_name,yard_id,boss_id,price,
+		 capacity,start_date,start_time,end_time,count,image_num,`type`,sign,time_stamp,status)
+		 values
+		 (#{ticketId},#{ticketName},#{yardId},#{bossId},#{price},#{capacity},#{startDate},#{startTime},
+		 #{endTime},#{count},#{imageNum},#{type},#{sign},#{timeStamp},#{status}) 
+	</insert>
+	 
+	<select id="getMudTicketInfoByTicketId" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT i.ticket_id ticketId,i.ticket_name ticketName,i.image_num imageNum
+		FROM mt_mud_ticket_info i
+		WHERE i.ticket_id=#{ticketId}
+	</select>
+	
+	<insert id="addMudTicketSellCompanyId" parameterType="com.tc.mud.applet.dto.MudTicketSellDTO">
+		INSERT INTO mt_mud_ticket_sell_to_agent   
+		 (order_id,ticket_id,buyer_id,seller_id,sign,time_stamp)values
+		 (#{orderId},#{ticketId},#{buyerId},#{sellerId},#{sign},#{timeStamp})
+	</insert>
+	
+	<select id="queryMudTicket" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT  i.ticket_id ticketId,i.ticket_name ticketName,i.image_num imageNum
+		FROM 	mt_mud_ticket_info i 
+		WHERE 	i.boss_id=#{userId}
+	</select>
+	
+	<select id="queryMudTicketsByTruckCompanyId" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT i.ticket_id ticketId,i.ticket_name ticketName,i.image_num imageNum,c.order_id orderId
+		FROM mt_mud_ticket_sell_to_agent c
+		LEFT JOIN  mt_mud_ticket_info i ON i.ticket_id=c.ticket_id
+		WHERE c.buyer_id=#{userId} AND i.`type`=#{type}
+	</select>
+	
+	<insert id="addMudTicketsAgent" parameterType="com.tc.mud.applet.dto.MudTicketAgentInfoDTO">
+		INSERT INTO mt_mud_ticket_agent  
+			  (agent_id,order_id,ticket_id,boss_id,price,count,time_stamp,sign) 
+		VALUES(#{agentId},#{orderId},#{ticketId},#{bossId},#{price},#{count},#{timeStamp},#{sign})
+	</insert>
+	
+	<select id="queryMudTicketsAgent" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT a.ticket_id,i.ticket_name,i.image_num,a.agent_id agentId
+		FROM	mt_company_member m
+		LEFT JOIN mt_mud_ticket_agent a ON a.boss_id=m.boss_id
+		LEFT JOIN mt_mud_ticket_info i ON a.ticket_id=i.ticket_id
+		WHERE m.member_id=#{userId} AND i.`type`=#{type}
+		<!-- SELECT a.ticket_id ,i.ticket_name,i.image_num
+		FROM mt_mud_ticket_agent a
+		LEFT JOIN mt_mud_ticket_info i ON a.ticket_id=i.ticket_id
+		WHERE a.company_id=#{companyId} AND i.`type`=#{type} -->
+	</select>
+	
+	<insert id="addDriverBuyMudTicket" parameterType="com.tc.mud.applet.dto.MudTicketSellDTO">
+		INSERT INTO mt_mud_ticket_sell_to_driver 
+		 (agent_id,driver_id,seller_id,sign,complete)values
+		 (#{agentId},#{driverId},#{sellerId},#{sign},'0')
+	</insert>
+	
+	<select id="getMudTicketInfoByBossIdAndTimeStamp" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT   i.ticket_id ticketId,i.yard_id yardId,i.boss_id bossId,i.ticket_name ticketName,i.sign,
+				i.price,i.capacity,i.start_date startDate,i.start_time startTime,i.end_time endTime
+		FROM mt_mud_ticket_info i
+		WHERE i.boss_id=#{bossId} AND i.time_stamp=#{timeStamp}
+	</select>
+	
+	<select id="getMudTicketAgentInfo" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT a.sign,a.price,a.count,a.agent_id agentId
+		FROM mt_mud_ticket_agent  a
+		LEFT JOIN mt_mud_ticket_sell_to_agent s ON a.order_id=s.order_id
+		LEFT JOIN mt_mud_ticket_info i ON  s.ticket_id=i.ticket_id
+		WHERE a.boss_id=#{bossId} AND a.time_stamp=#{timeStamp}
+	</select>
+	
+	<select id="queryMudTicketByDriverId" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT i.ticket_id ticketId,i.ticket_name ticketName,i.image_num imageNum,d.num_id numId
+		FROM mt_mud_ticket_sell_to_driver d
+		LEFT JOIN mt_mud_ticket_agent a ON a.agent_id=d.agent_id
+		LEFT JOIN mt_mud_ticket_info i ON i.ticket_id = a.ticket_id
+		WHERE d.driver_id=#{userId} AND i.`type`=#{type}
+	</select>
+	
+	<select id="agentGetTicketCodeInfo" resultType="java.util.Map">
+		SELECT i.boss_id b,i.time_stamp t,i.sign s,i.image_num img
+		FROM mt_mud_ticket_info i 
+		WHERE i.ticket_id=#{ticketId}
+	</select>
+	
+	<select id="driverGetTicketCodeInfo" resultType="java.util.Map">
+		SELECT a.boss_id b,a.time_stamp t,a.sign s,i.image_num img
+		FROM mt_mud_ticket_agent a
+		LEFT JOIN mt_mud_ticket_info i ON a.ticket_id = i.ticket_id
+		WHERE a.agent_id=#{agentId}
+	</select>
+	
+	<select id="getDriverMudTicketCodeByNumId" resultType="java.util.Map">
+		SELECT s.seller_id a,s.time_stamp t,s.sign s
+		FROM mt_mud_ticket_sell_to_driver d
+		LEFT JOIN mt_mud_ticket_agent a ON a.agent_id=d.agent_id
+		LEFT JOIN mt_mud_ticket_sell_to_agent s ON s.order_id=a.order_id
+		WHERE d.num_id=#{numId} and  d.driver_id=#{userId}
+	</select>
+	
+	<select id="getMudTicketSellInfo" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT a.ticket_id,a.sign
+		FROM mt_mud_ticket_sell_to_agent a
+		WHERE a.seller_id=#{sellerId} AND a.time_stamp=#{timeStamp}
+	</select>
+	
+	<insert id="addMudTruckHeadInfo" parameterType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+		INSERT INTO mt_mud_truck_info 
+		(mud_id,driver_id,head_id,release_id,release_time,release_sign) VALUES
+		(#{mudId},#{driverId},#{headId},#{releaseId},#{releaseTime},#{releaseSign})	
+	</insert>
+	
+	<insert id="addMudTruckTailInfo" parameterType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+		UPDATE mt_mud_truck_info i 
+		SET i.tail_id=#{tailId},i.receiver_id=#{receiverId},i.receiver_time=#{receiverTime},
+		i.receiver_sign=#{receiverSign},i.`status`='3'
+		WHERE i.mud_id=#{mudId}
+	</insert>
+	
+	<select id="queryMudYardTicketByYardId"  resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT i.ticket_name,i.image_num,i.ticket_id
+		FROM mt_mud_ticket_info i
+		WHERE i.yard_id=#{yardId} AND i.`status`='1'
+	</select>
+	
+	<select id="queryMudTicketSell" resultType="java.util.Map">
+		SELECT a.ticket_id ticketId,i.ticket_name ticketName,date(a.created_date)  date
+		FROM mt_mud_ticket_sell_to_agent a 
+		LEFT JOIN mt_mud_ticket_info i ON a.ticket_id=i.ticket_id
+		WHERE a.seller_id=#{userId}
+		ORDER BY a.created_date desc
+	</select>
+	
+	<select id="queryTruckMudTicketSell" resultType="java.util.Map">
+		SELECT i.ticket_name ticketName,date(d.created_date) date
+		FROM mt_mud_ticket_sell_to_driver d
+		LEFT JOIN mt_mud_ticket_agent a ON a.agent_id=d.agent_id
+		LEFT JOIN mt_mud_ticket_info i ON i.ticket_id=a.ticket_id
+		WHERE d.seller_id=#{userId} order by d.created_date desc
+	</select>
+	
+	<insert id="addMudTruckApply" parameterType="com.tc.mud.applet.dto.MudTruckApplyDTO">
+		INSERT INTO mt_mud_truck_apply a
+ 		(date,user_id,head_time,head_id,tail_time,tail_id,head_status,tail_status)
+ 		values
+ 		(#{date},#{userId},#{headTime},#{headId},#{tailTime},#{tailId},#{headStatus},#{tailStatus})
+	</insert>
+	
+	<select id="queryCheckTicketHeadCode" resultType="java.util.Map">
+		SELECT t.ticket_id ticketId,t.ticket_name ticketName, date(i.created_date) date
+		FROM mt_mud_truck_info i
+		LEFT JOIN mt_mud_ticket_info t ON i.head_id=t.ticket_id
+		WHERE i.release_id=#{userId}
+		ORDER BY i.created_date desc
+	</select>
+	
+	<select id="queryCheckTicketTailCode" resultType="java.util.Map">
+		SELECT t.ticket_id ticketId,t.ticket_name ticketName, date(i.created_date) date
+		FROM mt_mud_truck_info i
+		LEFT JOIN mt_mud_ticket_info t ON i.tail_id=t.ticket_id
+		WHERE i.receiver_id=#{userId}
+		ORDER BY i.updated_date desc
+	</select>
+	
+</mapper>

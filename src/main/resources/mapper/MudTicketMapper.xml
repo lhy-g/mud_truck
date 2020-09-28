@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tc.mud.applet.mapper.MudTicketMapper">
+
+
+	<!--   <insert id="saveMudHeadInfo" parameterType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		INSERT INTO mt_mud_head_info 
+		(head_id,company_id, `area`,address,start_date,price,`status`) VALUES
+		(#{headId},#{companyId},#{area},#{address},#{startDate},#{price},#{status}) ON DUPLICATE KEY
+		UPDATE `area`=#{area},address=#{address},start_date=#{startDate},price=#{price},`status`=#{status}
+	 </insert>
+
+
+	<insert id="saveMudTailInfo" parameterType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		INSERT INTO mt_mud_tail_info
+		(tail_id,company_id, `area`,address,start_date,price,`status`) VALUES
+		(#{tailId},#{companyId},#{area},#{address},#{startDate},#{price},#{status})
+		ON DUPLICATE KEY
+		UPDATE
+		`area`=#{area},address=#{address},start_date=#{startDate},price=#{price},`status`=#{status}
+	</insert>
+	 获取泥头票信息 
+	<select id="getMudHeadInfoByHeadId" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT 		h.head_id headId,i.company_name companyName,h.area,h.address,h.start_date startDate,h.price,h.`status`
+		FROM 		mt_mud_head_info h
+		LEFT JOIN 	mt_company_info i ON i.company_id=h.company_id
+		WHERE 		h.head_id=#{headId} 	
+	</select>
+	 获取泥尾票信息  
+	<select id="getMudTailInfoByTailId" resultType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		SELECT 		t.tail_id tailId,i.company_name companyName,t.area,t.address,t.start_date startDate,t.price,t.`status`
+		FROM		mt_mud_tail_info t
+		LEFT JOIN 	mt_company_info i ON i.company_id=t.company_id
+		WHERE 		t.tail_id=#{tailId}	
+	</select>
+	
+	<select id="queryMudTailList" resultType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		SELECT 		t.tail_id tailId,i.company_name companyName,t.area,t.address,t.start_date startDate,t.price,t.`status`
+		FROM		mt_mud_tail_info t
+		LEFT JOIN 	mt_company_info i ON i.company_id=t.company_id
+		WHERE 		t.`status`='1'
+	</select>
+	 <select id="queryMudHeadList" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT 		h.head_id headId,i.company_name companyName,h.area,h.address,h.start_date startDate,h.price,h.`status`
+		FROM 		mt_mud_head_info h
+		LEFT JOIN 	mt_company_info i ON i.company_id=h.company_id
+		WHERE 		h.`status`='1' 	
+	</select>
+
+	<insert id="addMudTailTran">
+		INSERT INTO 
+		mt_mud_tran_tail 
+		(tail_id,company_id,`status`) VALUES
+		(#{tailId},#{companyId},'0') ON DUPLICATE KEY
+		UPDATE updated_date= NOW()
+	</insert>
+	 
+	 <insert id="addMudHeadTran">
+		INSERT INTO 
+		mt_mud_tran_head 
+		(head_id,company_id,`status`) VALUES
+		(#{headId},#{companyId},'0') ON DUPLICATE KEY
+		UPDATE updated_date= NOW()
+	 </insert>
+
+	<select id="queryCompanyMudHeadTranList" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT t.head_id headId,h.area,h.address,h.start_date startDate
+		FROM mt_mud_tran_head t
+		LEFT JOIN mt_mud_head_info h ON h.head_id=t.head_id
+		WHERE t.company_id=#{companyId} AND t.status=#{status}		
+	</select>
+	
+	<select id="queryCompanyMudTailTranList" resultType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		SELECT t.tail_id,i.area,i.address,i.start_date,t.`status`
+		FROM mt_mud_tran_tail t
+		LEFT JOIN mt_mud_tail_info i ON t.tail_id=i.tail_id
+		WHERE t.company_id=#{companyId} AND t.`status`=#{status}
+	</select>
+	
+	<select id="queryMudHeadByCompanyId" resultType="com.tc.mud.applet.dto.MudTicketInfoDTO">
+		SELECT h.head_id,h.area,h.address,h.start_date
+		FROM mt_mud_head_info h
+		WHERE h.company_id=#{companyId}	
+	</select>
+	
+ 	<select id="queryTailByCompanyId" resultType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		SELECT t.tail_id,t.area,t.address,t.start_date
+		FROM mt_mud_tail_info t
+		WHERE t.company_id=#{companyId} 		
+ 	</select>
+	 
+	 <select id="queryMudTailTranList" resultType="com.tc.mud.applet.dto.dto.MudTailInfoDTO">
+		SELECT t.tail_id,t.company_id companyId,i.company_name companyName,t.`status`
+		FROM mt_mud_tran_tail t
+		LEFT JOIN mt_company_info i ON i.company_id=t.company_id
+		WHERE t.tail_id=#{tailId} and t.`status`=#{status}	 
+	 </select>
+	 
+	<select id="queryMudHeadTranList" resultType="com.tc.mud.applet.dto.dto.MudHeadTranDTO">
+		SELECT h.head_id,h.company_id companyId,i.company_name companyName,h.`status`
+		FROM mt_mud_tran_head h
+		LEFT JOIN mt_company_info i ON i.company_id=h.company_id
+		WHERE h.head_id=#{headId} AND h.`status`=#{status}	
+	</select>
+
+	<update id="updateMudHeadTranStatus">
+		UPDATE mt_mud_tran_head SET `status`=#{status}
+		WHERE head_id=#{headId} AND company_id=#{companyId}	
+	</update>
+
+	<update id="updateMudTailTranStatus">
+		UPDATE mt_mud_tran_tail SET `status`=#{status}
+		WHERE tail_id=#{tailId} AND company_id=#{companyId}
+	</update>
+	
+	<update id="updateMudTailStatus">
+		UPDATE mt_mud_tail_info SET `status`=#{status}
+		WHERE tail_id=#{tailId}
+	</update>
+	
+	<update id="updateMudHeadStatus">
+		UPDATE mt_mud_tail_info SET `status`=#{status}
+		WHERE head_id=#{headId}
+	</update>
+	
+	<insert id="addMudTruckInfo" parameterType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+		INSERT INTO mt_mud_truck_info  
+		(mud_id,head_id,tail_id,driver_id,`status`)
+		values(#{mudId},#{headId},#{tailId},#{driverId},#{status});		
+	</insert>
+	
+	<update id="updateReleaseInfoByMudId" parameterType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+		UPDATE mt_mud_truck_info i SET i.release_id=#{releaseId},i.release_date= NOW(),i.`status`=#{status}
+		WHERE i.mud_id=#{mudId}
+	</update>
+	
+	<update id="updateReceiveInfoByMudId" parameterType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+		UPDATE mt_mud_truck_info i SET i.receiver_id=#{receiverId},i.receiver_date= NOW(),i.`status`=#{status}
+		WHERE i.mud_id=#{mudId}
+	</update>
+	
+	<select id="queryMudTruckInfoByMudId" resultType="com.tc.mud.applet.dto.MudTruckInfoDTO">
+	
+	
+	
+	</select>
+	<select id="addMudTruckApply" parameterType="com.tc.mud.applet.dto.MudTruckApplyDTO">
+		INSERT INTO mt_mud_truck_apply 
+		(DATE,user_id,head_id,tail_id,head_status,tail_status) 
+		VALUES(#{date},#{userId},#{headId},#{tailId},'0','0')
+	</select>
+	
+	<select id="queryMudTrucKApplyStatus" resultType="com.tc.mud.applet.dto.MudTruckApplyDTO"> 
+		SELECT 		a.head_id headId,h.item_name headItemName,h.address headAddress,
+					h.start_time headStartTime,h.end_time headEndTime,
+			   		t.tail_id tailId,t.itme_name tailItemName,t.address tailAddress,
+			   		t.start_time tailStartTime,t.end_time tailEndTime
+		FROM 		mt_mud_truck_apply a
+		LEFT JOIN 	mt_mud_head_info h ON h.head_id=a.head_id
+		LEFT JOIN 	mt_mud_tail_info t ON t.tail_id=a.tail_id
+		WHERE 		a.user_id=#{userId} AND a.date=#{date}
+	</select>
+	
+	-->
+	
+	
+</mapper>
